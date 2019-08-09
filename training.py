@@ -46,7 +46,7 @@ def sequence_loss(y_pred, y_true, mask_index):
     return F.cross_entropy(y_pred, y_true, ignore_index=mask_index)
 
 args = Namespace(
-                 dataset_csv="data/simplest_eng_fra.csv",
+                 dataset_csv="data/LM_data.csv",
                  vectorizer_file="vectorizer.json",
                  model_state_file="model.pth",
                  reload_from_files=True,
