@@ -60,7 +60,7 @@ class LMDecoder(nn.Module):
         else:
             target_sequence = target_sequence.permute(1, 0)
             output_sequence_size = target_sequence.size(0)
-        batch_size = 64
+        batch_size = target_sequence.size(1)
         y_t_index = self._init_indices(batch_size)
         output_vectors = []
         self._cached_ht = []
@@ -71,7 +71,10 @@ class LMDecoder(nn.Module):
                y_t_index = target_sequence[i]
                 
             y_input_vector = self.target_embedding(y_t_index)
-            h_t = self.gru_cell(y_input_vector)
+            if i == 0 :
+                h_t = self.gru_cell(y_input_vector)
+            else:
+                h_t = self.gru_cell(y_input_vector,h_t)
             self._cached_ht.append(h_t.cpu().detach().numpy())
 
             score_for_y_t_index = self.classifier(F.dropout(h_t, 0.3))

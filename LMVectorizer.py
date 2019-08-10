@@ -23,7 +23,7 @@ class LMVectorizer(object):
         if vector_length < 0:
             vector_length = len(indices)
         
-        vector = np.zeros(vector_length+20, dtype=np.int64)
+        vector = np.zeros(vector_length, dtype=np.int64)
         vector[:len(indices)] = indices
         vector[len(indices):] = mask_index
 
@@ -47,7 +47,7 @@ class LMVectorizer(object):
                 x_indices (list): list of integers representing the observations in target decoder 
                 y_indices (list): list of integers representing predictions in target decoder
         """
-        indices = [self.target_vocab.lookup_token(token) for token in text.split(" ")]
+        indices = [self.target_vocab.lookup_token(token) for token in text.split()]
         x_indices = [self.target_vocab.begin_seq_index] + indices
         y_indices = indices + [self.target_vocab.end_seq_index]
         return x_indices, y_indices
@@ -78,15 +78,19 @@ class LMVectorizer(object):
                 "target_y_vector": target_y_vector, 
                 "target_length": len(target_x_indices)}
     @classmethod    
-    def from_dataframe(cls, bitext_df):   
-        target_vocab = SequenceVocabulary()         
+    def from_dataframe(cls, bitext_df, cutoff = 3):   
+        target_vocab = SequenceVocabulary()
+        word_counts = Counter()
         max_target_length = 0
         for _,row in bitext_df.iterrows():
             target_tokens = row["source_language"].split()
             if len(target_tokens) > max_target_length:
                max_target_length = len(target_tokens)
             for token in target_tokens:
-                target_vocab.add_token(token)
+                word_counts[token] += 1
+        for word, count in word_counts.items():
+            if count > cutoff:
+                target_vocab.add_token(word)
         return cls(target_vocab,max_target_length)
     @classmethod    
     def from_serializable(cls, contents):
